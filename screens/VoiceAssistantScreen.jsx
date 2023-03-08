@@ -163,7 +163,7 @@ const VoiceAssistantScreen = () => {
         <View className='w-full'>
            <TouchableOpacity
             className='bg-violet-600 rounded-full p-2 self-start mx-auto'
-            onPress={toggleTheme}
+            
            >
              <Ionicons 
               name='mic-outline'
