@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "voice-asssistant",
-    "slug": "voice-asssistant",
+    "slug": "voice-assistant",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -28,6 +28,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c3e417e9-4fe4-47c3-847d-01512d07d656"
+      }
+    },
+    "owner": "ikoma98"
   }
 }
