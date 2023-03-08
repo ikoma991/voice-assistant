@@ -1,4 +1,4 @@
-import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native'
+import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingView, Text } from 'react-native'
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -15,14 +15,13 @@ import ChatMessage from '../components/ChatMessage';
 const OPENAI_API = "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";
 
 const VoiceAssistantScreen = () => {
-  const [chatList,setChatList] = useState([
-    {
-      speechRecognizing:false,
-      results:[]
-  }])
+  const [chatList,setChatList] = useState([])
   const [message,setMessage] = useState('');
   const [isBusy,setIsBusy]  = useState(false);
-  const [voiceData,setVoiceData] = useState({});
+  const [voiceData,setVoiceData] = useState({
+      speechRecognizing:false,
+      results:[]
+  });
 
   const { toggleColorScheme } = useColorScheme();
 
@@ -174,6 +173,7 @@ const VoiceAssistantScreen = () => {
 
           {chatList.map( (el,idx) => (<ChatMessage type={el.type} text ={el.text} key={idx} />))
           }
+          {voiceData.results.map((result,idx) => <Text className="text-white" key={idx}>{result}</Text>)}
 
         </ScrollView>
 
@@ -212,7 +212,7 @@ const VoiceAssistantScreen = () => {
            >
              <Ionicons 
               // name='mic-outline'
-              name = {voiceData.speechRecognizing ? 'controller-stop' : 'mic-outline'}
+              name = {voiceData.speechRecognizing ? 'stop' : 'mic-outline'}
               size={32}
               color='white'
              />
