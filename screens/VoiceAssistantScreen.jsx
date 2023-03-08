@@ -2,10 +2,12 @@ import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingVie
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme } from 'nativewind';
 import axios from 'axios';
 import * as Speech from 'expo-speech';
+import Voice from '@react-native-voice/voice';
+
 
 import Logo from '../assets/logo.png'
 import ChatMessage from '../components/ChatMessage';
@@ -13,15 +15,57 @@ import ChatMessage from '../components/ChatMessage';
 const OPENAI_API = "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";
 
 const VoiceAssistantScreen = () => {
-  const [chatList,setChatList] = useState([{}])
+  const [chatList,setChatList] = useState([
+    {
+      speechRecognizing:false,
+      results:[]
+  }])
   const [message,setMessage] = useState('');
   const [isBusy,setIsBusy]  = useState(false);
+  const [voiceData,setVoiceData] = useState({});
 
   const { toggleColorScheme } = useColorScheme();
+
+  useEffect(()=>{
+    Voice.onSpeechStart = onSpeechStartHandler;
+    Voice.onSpeechEnd = onSpeechEndHandler;
+    Voice.onSpeechResults = onSpeechResultsHandler;
+    Voice.onSpeechError = onSpeechErrorHandler;
+
+    return ()=> {
+      Voice.destroy().then(Voice.removeAllListeners);
+    }
+  },[])
+
+  const onSpeechStartHandler = async () => {
+    await Voice.start();
+    setVoiceData({...voiceData,speechRecognizing:true});
+  }
+
+  const onSpeechEndHandler = async () => {
+    await Voice.stop();
+    setVoiceData({...voiceData,speechRecognizing:false});
+  }
+
+  const onSpeechResultsHandler = (result) => {
+    setVoiceData({...voiceData,results:result.value});
+  }
+  const onSpeechErrorHandler = (err) => {
+    console.log(err);
+  }
 
   const toggleTheme = () => {
     toggleColorScheme();
   }
+
+  const toggleRecognizor = () => {
+    if(voiceData.speechRecognizing) {
+      onSpeechEndHandler();
+    }else {
+      onSpeechStartHandler();
+    }
+  } 
+
   const addResponse = (text) => {
     setChatList(state=>  [...state.filter((el,idx)=> idx !== state.length-1 ),{type:'bot',text}]);
     
@@ -104,7 +148,7 @@ const VoiceAssistantScreen = () => {
   return (
     <KeyboardAvoidingView  className='dark:bg-zinc-900 h-full ' behavior='padding'  >
 
-      <View className='w-5/6 mx-auto  '>
+      <View className='w-5/6 mx-auto mt-3  '>
 
         <View className = "flex-row items-center justify-between">
           <Image 
@@ -163,10 +207,12 @@ const VoiceAssistantScreen = () => {
         <View className='w-full'>
            <TouchableOpacity
             className='bg-violet-600 rounded-full p-2 self-start mx-auto'
+            onPress={toggleRecognizor}
             
            >
              <Ionicons 
-              name='mic-outline'
+              // name='mic-outline'
+              name = {voiceData.speechRecognizing ? 'controller-stop' : 'mic-outline'}
               size={32}
               color='white'
              />

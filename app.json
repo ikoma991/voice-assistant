@@ -24,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.ikoma98.voiceassistant"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,6 +35,15 @@
         "projectId": "c3e417e9-4fe4-47c3-847d-01512d07d656"
       }
     },
+    "plugins": [
+      [
+        "@react-native-voice/voice",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "speechRecogntionPermission": "Allow $(PRODUCT_NAME) to securely recognize user speech"
+        }
+      ]
+    ],
     "owner": "ikoma98"
   }
 }

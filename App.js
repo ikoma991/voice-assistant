@@ -1,24 +1,16 @@
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
-import { useEffect, useLayoutEffect } from "react";
-import { StyleSheet, Platform, StatusBar, SafeAreaView } from "react-native";
+import { StyleSheet, Platform, SafeAreaView } from "react-native";
 import AppNavigation from "./navigation/AppNavigation";
 
 export default function App() {
   const { colorScheme } = useColorScheme();
-
-  useEffect(() => {
-    if (colorScheme === "dark") {
-      StatusBar.setBarStyle("light-content", true);
-    } else {
-      StatusBar.setBarStyle("dark-content", true);
-    }
-  }, [colorScheme]);
-
   return (
     <SafeAreaView
       style={styles.AndroidSafeArea}
       className="bg-bgLight dark:bg-zinc-900 "
     >
+      <StatusBar style={colorScheme === "light" ? "dark" : "light"} />
       <AppNavigation />
     </SafeAreaView>
   );
