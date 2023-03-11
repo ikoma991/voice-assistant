@@ -1,4 +1,4 @@
-import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingView, Text } from 'react-native'
+import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native'
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
