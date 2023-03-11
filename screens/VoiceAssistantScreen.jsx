@@ -2,7 +2,7 @@ import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingVie
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useColorScheme } from 'nativewind';
 import axios from 'axios';
 import * as Speech from 'expo-speech';
@@ -19,9 +19,16 @@ const VoiceAssistantScreen = () => {
   const [message,setMessage] = useState('');
   const [isBusy,setIsBusy]  = useState(false);
   const [voiceData,setVoiceData] = useState({
-      speechRecognizing:false,
-      results:[]
+    recognized: "",
+    pitch: "",
+    error: "",
+    end: "",
+    started: false,
+    results: [],
+    partialResults: [],
   });
+  const scrollViewRef = useRef(null);
+
 
   const { toggleColorScheme } = useColorScheme();
 
@@ -30,40 +37,137 @@ const VoiceAssistantScreen = () => {
     Voice.onSpeechEnd = onSpeechEndHandler;
     Voice.onSpeechResults = onSpeechResultsHandler;
     Voice.onSpeechError = onSpeechErrorHandler;
+    Voice.onSpeechRecognized = onSpeechRecognized;
+    Voice.onSpeechPartialResults = onSpeechPartialResults;
 
     return ()=> {
       Voice.destroy().then(Voice.removeAllListeners);
     }
-  },[])
+  },[]);
 
-  const onSpeechStartHandler = async () => {
-    await Voice.start();
-    setVoiceData({...voiceData,speechRecognizing:true});
+  useEffect(()=> {
+    setMessage(voiceData.partialResults[0]);
+  },[voiceData.partialResults]);
+
+  useEffect(()=> {
+    setMessage(voiceData.results[0]);
+
+
+  },[voiceData.results])
+
+  const onSpeechPartialResults = (e) => {
+    console.log("onSpeechPartialResults: ", e);
+    setVoiceData({
+      ...voiceData,
+      partialResults: e.value,
+    });
+
   }
 
-  const onSpeechEndHandler = async () => {
-    await Voice.stop();
-    setVoiceData({...voiceData,speechRecognizing:false});
+  const onSpeechRecognized = (e) => {
+    console.log("onSpeechRecognized: ", e);
+    setVoiceData({
+      ...voiceData,
+      recognized: "√"
+    });
+
+  }
+
+  const onSpeechStartHandler = async (e) => {
+    console.log("onSpeechStart: ", e);
+    setVoiceData({
+      ...voiceData,
+      results:[],
+      started: true,
+    });
+  }
+
+  const onSpeechEndHandler = async (e) => {
+    console.log("onSpeechEnd: ", e);
+    setVoiceData({
+      ...voiceData,
+      end: "√",
+      started: false,
+    });
+    console.log(voiceData.results);
+
   }
 
   const onSpeechResultsHandler = (result) => {
-    setVoiceData({...voiceData,results:result.value});
+    console.log("onSpeechResults: ", result);
+    setVoiceData({
+      ...voiceData,
+      results: result.value,
+    });
+    
   }
   const onSpeechErrorHandler = (err) => {
-    console.log(err);
+    console.log("onSpeechError: ", err);
+    setVoiceData({
+      ...voiceData,
+      error: JSON.stringify(err.error),
+    });
+  }
+
+
+  const startRecognizing = async () => {
+    setVoiceData({
+      ...voiceData,
+      recognized: "",
+      pitch: "",
+      error: "",
+      started: false,
+      results: [],
+      partialResults: [],
+      end: "",
+    });
+
+    try {
+      await Voice.start("en-US");
+
+      onSpeechStartHandler();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const stopRecognizing = async () => {
+    try {
+      await Voice.stop();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const cancelRecognizing = async () => {
+    try {
+      await Voice.cancel();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const destroyRecognizor = async () => {
+    try {
+      await Voice.destroy();
+    } catch (e) {
+      console.error(e);
+    }
+    setVoiceData({
+      ...voiceData,
+      recognized: "",
+      pitch: "",
+      error: "",
+      started: false,
+      results: [],
+      partialResults: [],
+      end: "",
+    });
   }
 
   const toggleTheme = () => {
     toggleColorScheme();
   }
-
-  const toggleRecognizor = () => {
-    if(voiceData.speechRecognizing) {
-      onSpeechEndHandler();
-    }else {
-      onSpeechStartHandler();
-    }
-  } 
 
   const addResponse = (text) => {
     setChatList(state=>  [...state.filter((el,idx)=> idx !== state.length-1 ),{type:'bot',text}]);
@@ -124,9 +228,10 @@ const VoiceAssistantScreen = () => {
         if(resultFromDuckDuckGo !== '') {
           response = resultFromDuckDuckGo;
         }else {
-          const resultFromOpenAI = await getResponseFromOpenAI(messageLowered);
-          response = resultFromOpenAI;
-          // response = "Sorry that command isn't supported yet";
+          // const resultFromOpenAI = await getResponseFromOpenAI(messageLowered);
+          // response = resultFromOpenAI;
+
+          response = "Sorry that command isn't supported yet";
         }
       }
 
@@ -167,13 +272,15 @@ const VoiceAssistantScreen = () => {
           contentContainerStyle={{
             padding:25,
           }}
+          ref={scrollViewRef}
+          onContentSizeChange={() => {scrollViewRef.current?.scrollToEnd()}}
+          showsVerticalScrollIndicator={false}
         >
 
           <ChatMessage type='bot' text='Hello World!' />
 
           {chatList.map( (el,idx) => (<ChatMessage type={el.type} text ={el.text} key={idx} />))
           }
-          {voiceData.results.map((result,idx) => <Text className="text-white" key={idx}>{result}</Text>)}
 
         </ScrollView>
 
@@ -205,18 +312,52 @@ const VoiceAssistantScreen = () => {
         </View>
 
         <View className='w-full'>
-           <TouchableOpacity
+          {!voiceData.started ? 
+          (           
+          
+          <TouchableOpacity
             className='bg-violet-600 rounded-full p-2 self-start mx-auto'
-            onPress={toggleRecognizor}
+            onPress={startRecognizing}
             
            >
              <Ionicons 
-              // name='mic-outline'
-              name = {voiceData.speechRecognizing ? 'stop' : 'mic-outline'}
+              // name='mic-outline' 'stop'
+              name = "mic-outline"
               size={32}
               color='white'
              />
+             
            </TouchableOpacity>
+           ) 
+          :
+          (
+          <TouchableOpacity
+            className='bg-violet-600 rounded-full p-2 self-start mx-auto'
+            onPress={stopRecognizing}
+            
+           >
+             <Ionicons 
+              // name='mic-outline' 'stop'
+              name = "stop"
+              size={32}
+              color='white'
+             />
+             
+           </TouchableOpacity>
+          )}
+
+          {/* <TouchableOpacity
+            className='bg-violet-600 rounded-full p-2 self-start mx-auto'
+            onPress={stopRecognizing}
+            
+           >
+             <Ionicons 
+              // name='mic-outline' 'stop'
+              name = "stop"
+              size={32}
+              color='white'
+             />
+          </TouchableOpacity> */}
         </View>
       </View>
     </KeyboardAvoidingView>
