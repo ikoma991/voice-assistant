@@ -172,7 +172,7 @@ const VoiceAssistantScreen = () => {
   }
 
   const addResponse = (text) => {
-    setChatList(state=>  [...state.filter((el,idx)=> idx !== state.length-1 ),{type:'bot',text}]);
+    setChatList(state=>  [state.slice(0,-1),{type:'bot',text}]);
     
   }
 
