@@ -50,9 +50,11 @@ const VoiceAssistantScreen = () => {
   },[voiceData.partialResults]);
 
   useEffect(()=> {
-    setMessage(voiceData.results[0]);
-
-
+    if(voiceData.results[0] && voiceData.results[0] !== "" ) {
+      console.log("use Effect result: ",voiceData.results[0]);
+      setMessage("");
+      sendCommand(voiceData.results[0]);
+    }
   },[voiceData.results])
 
   const onSpeechPartialResults = (e) => {
@@ -201,7 +203,9 @@ const VoiceAssistantScreen = () => {
       }
   }
 
-  const sendCommand = async () => {
+  const sendCommand = async (messageFromArgs) => {
+    const message = message || messageFromArgs;
+
     if(message !== '') {
       setChatList([...chatList,{type:'user',text:message}]);
       setMessage('');
