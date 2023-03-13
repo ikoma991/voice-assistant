@@ -228,10 +228,10 @@ const VoiceAssistantScreen = () => {
         if(resultFromDuckDuckGo !== '') {
           response = resultFromDuckDuckGo;
         }else {
-          // const resultFromOpenAI = await getResponseFromOpenAI(messageLowered);
-          // response = resultFromOpenAI;
+          const resultFromOpenAI = await getResponseFromOpenAI(messageLowered);
+          response = resultFromOpenAI;
 
-          response = "Sorry that command isn't supported yet";
+          // response = "Sorry that command isn't supported yet";
         }
       }
 
