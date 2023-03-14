@@ -187,6 +187,7 @@ const VoiceAssistantScreen = () => {
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,
+        stop:['.']
       }
       try{
         const openai = await axios.post('https://api.openai.com/v1/completions',data,{headers:headers});
