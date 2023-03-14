@@ -1,4 +1,4 @@
-import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native'
+import { View,Image, ScrollView,TextInput, TouchableOpacity, KeyboardAvoidingView, Text } from 'react-native'
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -19,10 +19,10 @@ const VoiceAssistantScreen = () => {
   const [message,setMessage] = useState('');
   const [isBusy,setIsBusy]  = useState(false);
   const [voiceData,setVoiceData] = useState({
-    recognized: "",
+    recognized: false,
     pitch: "",
     error: "",
-    end: "",
+    end: false,
     started: false,
     results: [],
     partialResults: [],
@@ -70,7 +70,7 @@ const VoiceAssistantScreen = () => {
     console.log("onSpeechRecognized: ", e);
     setVoiceData({
       ...voiceData,
-      recognized: "√"
+      recognized: true
     });
 
   }
@@ -78,9 +78,13 @@ const VoiceAssistantScreen = () => {
   const onSpeechStartHandler = async (e) => {
     console.log("onSpeechStart: ", e);
     setVoiceData({
-      ...voiceData,
-      results:[],
-      started: true,
+    recognized: false,
+    pitch: "",
+    error: "",
+    end: false,
+    started: true,
+    results: [],
+    partialResults: [],
     });
   }
 
@@ -88,8 +92,9 @@ const VoiceAssistantScreen = () => {
     console.log("onSpeechEnd: ", e);
     setVoiceData({
       ...voiceData,
-      end: "√",
+      end: true,
       started: false,
+      recognized:false
     });
     console.log(voiceData.results);
 
@@ -113,17 +118,6 @@ const VoiceAssistantScreen = () => {
 
 
   const startRecognizing = async () => {
-    setVoiceData({
-      ...voiceData,
-      recognized: "",
-      pitch: "",
-      error: "",
-      started: false,
-      results: [],
-      partialResults: [],
-      end: "",
-    });
-
     try {
       await Voice.start("en-US");
 
@@ -156,14 +150,13 @@ const VoiceAssistantScreen = () => {
       console.error(e);
     }
     setVoiceData({
-      ...voiceData,
-      recognized: "",
+      recognized: false,
       pitch: "",
       error: "",
       started: false,
       results: [],
       partialResults: [],
-      end: "",
+      end: false,
     });
   }
 
@@ -172,7 +165,7 @@ const VoiceAssistantScreen = () => {
   }
 
   const addResponse = (text) => {
-    setChatList(state=>  [state.slice(0,-1),{type:'bot',text}]);
+    setChatList(state=>  [...state.filter((el,idx)=> idx !== state.length-1 ),{type:'bot',text}]);
     
   }
 
@@ -205,7 +198,6 @@ const VoiceAssistantScreen = () => {
 
   const sendCommand = async (messageFromArgs) => {
     const message = message || messageFromArgs;
-
     if(message !== '') {
       setChatList([...chatList,{type:'user',text:message}]);
       setMessage('');
@@ -281,7 +273,7 @@ const VoiceAssistantScreen = () => {
           showsVerticalScrollIndicator={false}
         >
 
-          <ChatMessage type='bot' text='Hello World!' />
+          {/* <ChatMessage type='bot' text='Hello World!' /> */}
 
           {chatList.map( (el,idx) => (<ChatMessage type={el.type} text ={el.text} key={idx} />))
           }
@@ -325,7 +317,6 @@ const VoiceAssistantScreen = () => {
             
            >
              <Ionicons 
-              // name='mic-outline' 'stop'
               name = "mic-outline"
               size={32}
               color='white'
@@ -341,7 +332,6 @@ const VoiceAssistantScreen = () => {
             
            >
              <Ionicons 
-              // name='mic-outline' 'stop'
               name = "stop"
               size={32}
               color='white'
@@ -349,19 +339,6 @@ const VoiceAssistantScreen = () => {
              
            </TouchableOpacity>
           )}
-
-          {/* <TouchableOpacity
-            className='bg-violet-600 rounded-full p-2 self-start mx-auto'
-            onPress={stopRecognizing}
-            
-           >
-             <Ionicons 
-              // name='mic-outline' 'stop'
-              name = "stop"
-              size={32}
-              color='white'
-             />
-          </TouchableOpacity> */}
         </View>
       </View>
     </KeyboardAvoidingView>
