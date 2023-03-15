@@ -238,11 +238,7 @@ const VoiceAssistantScreen = () => {
 
       setTimeout(()=> {
         addResponse(response);
-        if(response.length > 50) {
-          Speech.speak("Here is what I found",{language:'en-GB'});
-        }else {
-          Speech.speak(response);
-        }
+        Speech.speak(response);
         setIsBusy(false);
       },2000)
 
