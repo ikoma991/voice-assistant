@@ -42,6 +42,7 @@ const VoiceAssistantScreen = () => {
 
     return ()=> {
       Voice.destroy().then(Voice.removeAllListeners);
+      Speech.stop();
     }
   },[]);
 
@@ -118,6 +119,7 @@ const VoiceAssistantScreen = () => {
 
 
   const startRecognizing = async () => {
+    Speech.stop();
     try {
       await Voice.start("en-US");
 
@@ -198,6 +200,7 @@ const VoiceAssistantScreen = () => {
   }
 
   const sendCommand = async (messageFromArgs) => {
+    Speech.stop();
     const message = message || messageFromArgs;
     if(message !== '') {
       setChatList([...chatList,{type:'user',text:message}]);
