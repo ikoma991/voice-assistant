@@ -177,7 +177,7 @@ const VoiceAssistantScreen = () => {
   }
 
   const sendCommand = async (messageFromArgs) => {
-    // Speech.stop();
+    Speech.stop();
     const msg = message || messageFromArgs;
     console.log(msg);
     if(msg !== '') {
