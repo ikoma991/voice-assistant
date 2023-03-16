@@ -11,7 +11,7 @@ import Voice from '@react-native-voice/voice';
 
 import Logo from '../assets/logo.png'
 import ChatMessage from '../components/ChatMessage';
-
+import { getResponseFromOpenAI } from '../utilities/openai';
 
 
 const VoiceAssistantScreen = () => {
@@ -176,41 +176,18 @@ const VoiceAssistantScreen = () => {
     return res.data["Abstract"];
   }
 
-  const getResponseFromOpenAI = async (text) => {
-    const OPENAI_API = "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";
-    const headers = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_API}`
-    }
-    const data = {
-      prompt:text,
-      model:'text-davinci-003',
-      temperature: 0.7,
-      max_tokens: 100,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-      stop:['.']
-    }
-    try{
-      const openai = await axios.post('https://api.openai.com/v1/completions',data,{headers:headers});
-      return openai.data.choices[0].text.trim()
-    }catch (err) {
-      console.log(err);
-    }
-  }
-
   const sendCommand = async (messageFromArgs) => {
-    Speech.stop();
-    const message = message || messageFromArgs;
-    if(message !== '') {
-      setChatList([...chatList,{type:'user',text:message}]);
+    // Speech.stop();
+    const msg = message || messageFromArgs;
+    console.log(msg);
+    if(msg !== '') {
+      setChatList([...chatList,{type:'user',text:msg}]);
       setMessage('');
 
       setIsBusy(true);
       setChatList(state=> [...state,{type:'bot',text:'.......'}]);
 
-      const messageLowered = message.toLowerCase();
+      const messageLowered = msg.toLowerCase();
       let response = '';
 
       if(messageLowered.includes('hello')) {
@@ -231,7 +208,6 @@ const VoiceAssistantScreen = () => {
         }else {
           const resultFromOpenAI = await getResponseFromOpenAI(messageLowered);
           response = resultFromOpenAI;
-
           // response = "Sorry that command isn't supported yet";
         }
       }
