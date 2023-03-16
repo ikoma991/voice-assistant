@@ -162,10 +162,6 @@ const VoiceAssistantScreen = () => {
   //   });
   // }
 
-  const toggleTheme = () => {
-    toggleColorScheme();
-  }
-
   const addResponse = (text) => {
     setChatList(state=>  [...state.slice(0,state.length-1),{type:'bot',text}]);
     
@@ -197,7 +193,7 @@ const VoiceAssistantScreen = () => {
       }else if (messageLowered.includes('change theme')){
         addResponse('Changing theme...');
         Speech.speak('Changing theme');
-        setTimeout(toggleTheme,2000);
+        setTimeout(toggleColorScheme,2000);
         response = 'Theme has been changed!';
       }else {
 
