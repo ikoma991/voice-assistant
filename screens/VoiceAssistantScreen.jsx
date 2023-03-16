@@ -137,30 +137,30 @@ const VoiceAssistantScreen = () => {
     }
   }
 
-  const cancelRecognizing = async () => {
-    try {
-      await Voice.cancel();
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  // const cancelRecognizing = async () => {
+  //   try {
+  //     await Voice.cancel();
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
 
-  const destroyRecognizor = async () => {
-    try {
-      await Voice.destroy();
-    } catch (e) {
-      console.error(e);
-    }
-    setVoiceData({
-      recognized: false,
-      pitch: "",
-      error: "",
-      started: false,
-      results: [],
-      partialResults: [],
-      end: false,
-    });
-  }
+  // const destroyRecognizor = async () => {
+  //   try {
+  //     await Voice.destroy();
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  //   setVoiceData({
+  //     recognized: false,
+  //     pitch: "",
+  //     error: "",
+  //     started: false,
+  //     results: [],
+  //     partialResults: [],
+  //     end: false,
+  //   });
+  // }
 
   const toggleTheme = () => {
     toggleColorScheme();
