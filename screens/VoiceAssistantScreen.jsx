@@ -8,6 +8,7 @@ import { useColorScheme } from 'nativewind';
 import axios from 'axios';
 import * as Speech from 'expo-speech';
 import Voice from '@react-native-voice/voice';
+import * as Linking from "expo-linking";
 
 import Logo from '../assets/logo.png'
 import ChatMessage from '../components/ChatMessage';
@@ -59,13 +60,14 @@ const VoiceAssistantScreen = () => {
     setMessage(voiceData.partialResults[0]);
   }, [voiceData.partialResults]);
 
-  useEffect(() => {
-    if (voiceData.results[0] && voiceData.results[0] !== "") {
-      console.log("use Effect result: ", voiceData.results[0]);
-      setMessage("");
-      sendCommand(voiceData.results[0]);
-    }
-  }, [voiceData.results])
+  // useEffect(() => {
+  //   if (voiceData.end && voiceData.results[0] && voiceData.results[0] !== "") {
+  //     console.log("use Effect result: ", voiceData.results[0]);
+  //     setMessage("");
+  //     sendCommand(voiceData.results[0]);
+  //     console.log(voiceData);
+  //   }
+  // }, [voiceData.results]);
 
   const onSpeechPartialResults = (e) => {
     console.log("onSpeechPartialResults: ", e);
@@ -116,6 +118,8 @@ const VoiceAssistantScreen = () => {
       ...voiceData,
       results: result.value,
     });
+    setMessage("");
+    sendCommand(result.value[0]);
 
   }
   const onSpeechErrorHandler = (err) => {
@@ -170,10 +174,10 @@ const VoiceAssistantScreen = () => {
   //   });
   // }
 
-  const addMessage = (type, text, index) => {
+  const addMessage = (type, text, mt = null, index ) => {
     switch (type) {
       case 'google':
-        return (<GoogleMessage key={index} query={text} />)
+        return (<GoogleMessage key={index} query={text} mt={mt} />)
       default:
         return (<ChatMessage type={type} text={text} key={index} />)
     }
@@ -183,6 +187,29 @@ const VoiceAssistantScreen = () => {
   const getResponseFromDuckDuckGo = async (text) => {
     const res = await axios.get(`http://api.duckduckgo.com/?q=${text.replace(" ", "+")}&format=json`);
     return res.data["Abstract"];
+  }
+
+  const getPredictedPrice = async (symbol,count) => {
+    const coinSymbolUpper = symbol.toUpperCase();
+    // const coinsDetailRes = await axios.get(`https://coincodex.com/apps/coincodex/cache/all_coins.json`);
+    const coinsDetailRes = await axios.get(`https://coincodex.com/api/coincodex/get_coin/${coinSymbolUpper}`);
+    const coinInfo = coinsDetailRes.data;
+    // const coinName = allCoins.filter(el=> el.symbol === coinSymbolUpper)[0].shortname;
+    const coinName = coinInfo.shortname;
+    const res = await axios.get(`https://coincodex.com/api/predictions/get_byshortname/${coinName}`);
+    const thirtyDayPredictionArr = res.data['thirtyDayPrediction'];
+    const thirtyDayPredictionPrices = thirtyDayPredictionArr.map(el => Math.round(el[1]) );
+    return thirtyDayPredictionPrices[count];
+  }
+
+  const removeCommandFromMessage = (messageArr, commandArr, message) => {
+    let newMessage = message;
+    messageArr.forEach(el => {
+      if (commandArr.includes(el)) {
+        newMessage = newMessage.replace(el, "");
+      }
+    });
+    return newMessage.trim();
   }
 
   const sendCommand = async (messageFromArgs) => {
@@ -195,6 +222,7 @@ const VoiceAssistantScreen = () => {
       setIsBusy(true);
 
       const messageLowered = msg.toLowerCase().trim();
+      const messageArr = messageLowered.split(" ");
       let response = '';
       const greetings = ['hello', 'hi', 'bonjour', 'hola', 'salam', 'assalam alaikum', 'salam alaikum', 'namaste', 'adaab', 'good morning', 'good evening'];
       const questionCommands = ['who', 'how', 'what', 'where', 'which', 'whats', 'what\'s', 'whos', 'who\'s', 'wheres', 'where\'s', 'hows'];
@@ -206,18 +234,21 @@ const VoiceAssistantScreen = () => {
       const locationCommands = ['locate'];
 
       if (greetings.includes(messageLowered)) {
+
         response = 'Hello! I am your personal assistant. How can I help you?';
 
       } else if (messageLowered == 'how are you') {
         response = 'I am doing good, and you?'
 
       } else if (messageLowered.includes('change theme')) {
+
         addResponse('Changing theme...', 'bot');
         Speech.speak('Changing theme');
         setTimeout(toggleColorScheme, 2000);
         response = 'Theme has been changed!';
 
       } else if (messageLowered.startsWith("open")) {
+
         console.log("OPENING APP!!: ");
         // const appName = messageLowered.replace('open',"").trim().replace(" ","-");
         const appName = messageLowered.replace('open', " ").trim()
@@ -226,14 +257,16 @@ const VoiceAssistantScreen = () => {
         setTimeout(() => openApp(appName), 2000);
         response = `Opened ${appName}`;
 
-      } else if (googleCommands.includes(messageLowered.split(" ")[0])) {
-        console.log(messageLowered);
+      } else if (googleCommands.includes(messageArr[0])) {
+
+        console.log(messageLowered);        
+        const messageWithoutCommand = removeCommandFromMessage(messageArr,googleCommands,messageLowered);
         addResponse('Processing your request...', 'bot');
         Speech.speak('Processing your request');
-        setChatList(state => [...state, { type: 'google', text: messageLowered }]);
+        setChatList(state => [...state, { type: 'google', text: messageWithoutCommand }]);
         response = 'Here is what I found!';
         
-      } else if (questionCommands.includes(messageLowered.split(" ")[0])) {
+      } else if (questionCommands.includes(messageArr[0])) {
         console.log(messageLowered);
         const resultFromDuckDuckGo = await getResponseFromDuckDuckGo(messageLowered);
         if (resultFromDuckDuckGo !== '') {
@@ -244,42 +277,48 @@ const VoiceAssistantScreen = () => {
           // response = "Sorry that command isn't supported yet";
         }
 
-      } else if (weatherCommands.includes(messageLowered.split(" ")[0])) {
+      } else if (weatherCommands.includes(messageArr[0])) {
+
         console.log(messageLowered);
         addResponse('Processing your request...', 'bot');
         Speech.speak('Processing your request');
         setChatList(state => [...state, { type: 'google', text: messageLowered }]);
         response = 'Here is what I found!';
 
-      } else if (priceCommands.includes(messageLowered.split(" ")[0])) {
+      } else if (priceCommands.includes(messageArr[0])) {
+
         console.log(messageLowered);
         addResponse('Processing your request...', 'bot');
         Speech.speak('Processing your request');
         setChatList(state => [...state, { type: 'google', text: messageLowered }]);
         response = 'Here is what I found!';
 
-      } else if (translateCommands.includes(messageLowered.split(" ")[0])) {
+      } else if (translateCommands.includes(messageArr[0])) {
+
         console.log(messageLowered);
         addResponse('Processing your request...', 'bot');
         Speech.speak('Processing your request');
-        setChatList(state => [...state, { type: 'google', text: messageLowered }]);
+        setChatList(state => [...state, { type: 'google', text: messageLowered, mt:-90 }]);
         response = 'Here is what I found!';
 
-      } else if (calculateCommands.includes(messageLowered.split(" ")[0])) {
-        console.log(messageLowered);
+      } else if (calculateCommands.includes(messageArr[0])) {
+
+        const messageWithoutCommand = removeCommandFromMessage(messageArr, calculateCommands, messageLowered);
         addResponse('Processing your request...', 'bot');
         Speech.speak('Processing your request');
-        setChatList(state => [...state, { type: 'google', text: messageLowered }]);
+        setChatList(state => [...state, { type: 'google', text: messageWithoutCommand }]);
         response = 'Here is what I found!';
 
-      } else if (locationCommands.includes(messageLowered.split(" ")[0])) {
-        console.log(messageLowered);
+      } else if (locationCommands.includes(messageArr[0])) {
+
+        const location = messageArr.slice(1,messageArr.length).join(" ");
         addResponse('Processing your request...', 'bot');
         Speech.speak('Processing your request');
-        setChatList(state => [...state, { type: 'google', text: messageLowered }]);
+        setTimeout(() => Linking.openURL(`geo:0,0?q=${location}`) , 2000);
         response = 'Here is what I found!';
 
       } else if (messageLowered.startsWith("play music")) {
+
         const song = messageLowered.replace("play music", "").trim();
         console.log(song);
         response = `Playing ${song}`;
@@ -293,10 +332,55 @@ const VoiceAssistantScreen = () => {
         setTimeout(() => {
           setModalData({ url: `https://poki.com`, type: 'play_game', show: true, })
         }, 2000)
+
+      } else if (messageLowered.startsWith("predict")) {
+
+        console.log("prediction handler ");
+        const coinSymbol = messageArr[1];
+        const afterHowManyDays = messageArr[3];
+        try{
+          const predictedPrice = await getPredictedPrice(coinSymbol,afterHowManyDays-1);
+          if(predictedPrice){
+            response = `Price of ${coinSymbol} after ${afterHowManyDays} days will be $${predictedPrice}`;
+          }else {
+            console.log("No predicted price. ");
+            response = "Sorry couldn't find the coin or the format is incorrect";
+          }
+        }catch(err) {
+          response = "Sorry something went wrong";
+        }
+
       } else if (messageLowered.startsWith("call")) {
-        console.log("Call Handler ");
+        
+        console.log("Call Handler");
+        let contacts;
+        const messageWithoutCommand = removeCommandFromMessage(messageArr,["call"],messageLowered);
+
+        const { status } = await Contacts.requestPermissionsAsync();
+        if (status === 'granted') {
+          const { data } = await Contacts.getContactsAsync({
+            fields: [Contacts.Fields.Birthday, Contacts.Fields.Emails, Contacts.Fields.FirstName, Contacts.Fields.LastName, Contacts.Fields.PhoneNumbers]
+          });
+
+          if (data.length > 0) {
+            contacts = data;
+          }
+        }
+
+        if(messageWithoutCommand) {
+          const contact = contacts.filter(el => el.name.toLowerCase().replace(/[^a-zA-Z0-9 ]/g, '').includes(messageWithoutCommand));
+          if(contact.length !== 0) {
+            const contactNumber = contact[0].phoneNumbers[0].number;
+            setTimeout(() => Linking.openURL(`tel:${contactNumber}`),2000);
+            response = `Calling ${contact[0].name}`;
+          }else {
+            response = "Sorry couldn't find the contact";
+          }
+          
+        }
 
       } else {
+
         const resultFromDuckDuckGo = await getResponseFromDuckDuckGo(messageLowered);
         if (resultFromDuckDuckGo !== '') {
           response = resultFromDuckDuckGo;
@@ -305,6 +389,7 @@ const VoiceAssistantScreen = () => {
           response = resultFromOpenAI;
           // response = "Sorry that command isn't supported yet";
         }
+
       }
 
       setTimeout(() => {
@@ -353,7 +438,7 @@ const VoiceAssistantScreen = () => {
           onContentSizeChange={() => { scrollViewRef.current?.scrollToEnd() }}
           showsVerticalScrollIndicator={false}
         >
-          {chatList.map((el, idx) => addMessage(el.type, el.text, idx))}
+          {chatList.map((el, idx) => addMessage(el.type, el.text, el.mt, idx))}
 
         </ScrollView>
 

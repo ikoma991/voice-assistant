@@ -1,7 +1,7 @@
 import { View } from 'react-native'
 import { WebView } from 'react-native-webview';
 
-const GoogleMessage = ({query}) => {
+const GoogleMessage = ({query,mt}) => {
   return (
     <View
       pointerEvents="none"
@@ -25,7 +25,7 @@ const GoogleMessage = ({query}) => {
               uri: encodeURI(`https://www.google.com/search?hl=en&q=${query}`),
             }}
             style={{
-              marginTop: -150,
+              marginTop: mt || -150,
               height: 400,
               opacity:0.99
             }}

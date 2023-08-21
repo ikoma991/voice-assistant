@@ -22,6 +22,7 @@ const AppNavigation = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         { showSplashScreen ? <Stack.Screen name="Splash" component={SplashScreen} /> : null }
+        {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
 
         { userInfo ? null : <Stack.Screen name="Start" component={StartScreen} /> }
         { userInfo ? null : <Stack.Screen name="Login" component={LoginScreen} /> }

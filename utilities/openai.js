@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const getResponseFromOpenAI = async (text) => {
-  const OPENAI_API = "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";
+  const OPENAI_API = "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";
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${OPENAI_API}`,
