@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "voice-asssistant",
+    "name": "Every Voice",
     "slug": "voice-assistant",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#18181B"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -28,7 +28,7 @@
       "package": "com.ikoma98.voiceassistant"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/adaptive-icon.png"
     },
     "extra": {
       "eas": {
