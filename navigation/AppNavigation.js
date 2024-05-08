@@ -21,13 +21,23 @@ const AppNavigation = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        { showSplashScreen ? <Stack.Screen name="Splash" component={SplashScreen} /> : null }
+        {showSplashScreen ? (
+          <Stack.Screen name="Splash" component={SplashScreen} />
+        ) : null}
         {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
 
-        { userInfo ? null : <Stack.Screen name="Start" component={StartScreen} /> }
-        { userInfo ? null : <Stack.Screen name="Login" component={LoginScreen} /> }
-        { userInfo ? <Stack.Screen name="main" component={VoiceAssistantScreen} /> : null}
-        { userInfo ? <Stack.Screen name="profile" component={ProfileScreen} /> : null}
+        {userInfo ? null : (
+          <Stack.Screen name="Start" component={StartScreen} />
+        )}
+        {userInfo ? null : (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        )}
+        {userInfo ? (
+          <Stack.Screen name="main" component={VoiceAssistantScreen} />
+        ) : null}
+        {userInfo ? (
+          <Stack.Screen name="profile" component={ProfileScreen} />
+        ) : null}
       </Stack.Navigator>
     </NavigationContainer>
   );
